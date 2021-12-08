@@ -4,16 +4,15 @@ require_relative "../toolkit"
 
 def calculate_column_criteria(index, input, desired:)
   intermediate = input.map {|bit| bit[index].to_i}
+  debug intermediate.join, level: 3
   counts = intermediate.tally.sort_by {|(k, v)| v}
+  debug counts.inspect, level: 3
   # count = intermediate.sum
   # half = input.count / 2
 
   if counts.first.last == counts.last.last
-    if desired == 1
-      "1"
-    else
-      "0"
-    end
+    debug "counts are equal, returning on #{desired}", level: 2
+    return desired.to_s
   end
 
   if desired == 1
@@ -34,20 +33,19 @@ def filter(input, desired:, index: 0)
   end
 
   if filtered.length < 2
-    debug "determined filtered at index #{index} -- #{filtered.first}"
+    debug "determined filtered at index #{index} -- #{filtered.first} last filter: #{criteria}"
     filtered
   else
-    debug "filtered #{filtered.count}, filtering again"
+    debug "filtered for #{criteria} -- #{filtered.count}, filtering again #{debug(filtered, level: 3, output: false)}"
     filter(filtered, desired: desired, index: index + 1)
   end
 end
 
-#o2g = filter(input, desired: 1).first.to_i(2)
-debug!
+o2g = filter(input, desired: 1).first.to_i(2)
 co2 = filter(input, desired: 0).first.to_i(2)
 
-#puts "o2g => #{o2g}"
+puts "o2g => #{o2g}"
 puts "co2 => #{co2}"
 
-#puts o2g * co2
+puts o2g * co2
 
