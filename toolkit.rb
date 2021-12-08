@@ -110,8 +110,8 @@ class Puzzle
   end
 
   def initialize(**args)
-    self.class.state_defaults do |key, default|
-      instance_variable_set(:"@#{key}", args[key] || default)
+    self.class.state_defaults.each do |key, default|
+      instance_variable_set(:"@#{key}", args[key] || default.clone)
     end
   end
 

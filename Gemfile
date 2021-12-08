@@ -1,0 +1,7 @@
+source "https://rubygems.org"
+
+gem "diffy"
+gem "tty-progressbar"
+gem "colorize"
+gem "parser"
+gem "pry"
