@@ -1,49 +1,53 @@
 # frozen_string_literal: true
 
-require_relative "input.rb"
+require_relative "../toolkit"
 
-sums = [0, 0,0,0,0,0,0,0, 0, 0, 0, 0]
+def calculate_column_criteria(index, input, desired:)
+  intermediate = input.map {|bit| bit[index].to_i}
+  counts = intermediate.tally.sort_by {|(k, v)| v}
+  # count = intermediate.sum
+  # half = input.count / 2
 
-INPUT.each do |string|
-  string.chars.each_with_index do |char, index|
-    sums[index] += char.to_i
+  if counts.first.last == counts.last.last
+    if desired == 1
+      "1"
+    else
+      "0"
+    end
+  end
+
+  if desired == 1
+    counts.last.first.to_s
+    # count >= half ? "1" : "0"
+
+  else
+    counts.first.first.to_s
+    # count >= half ? "0" : "1"
   end
 end
 
-count = INPUT.count
-half = count / 2
+def filter(input, desired:, index: 0)
+  criteria = calculate_column_criteria(index, input, desired: desired)
 
-p sums
-p count
-p half
-
-o2_criteria = sums.map do |bit|
-  puts "= #{bit}" if bit == half
-  bit > half ? 1 : 0
-end.join
-
-co2_criteria = sums.map do |bit|
-  puts "= #{bit}" if bit == half
-  bit < half ? 1 : 0
-end.join
-
-def filter(input, criteria, index = 0)
   filtered = input.select do |entry|
-    entry[index] == criteria[index]
+    entry[index] == criteria
   end
 
   if filtered.length < 2
-    puts "determined filtered #{criteria} at index #{index} -- #{filtered.first}"
+    debug "determined filtered at index #{index} -- #{filtered.first}"
     filtered
   else
-    filter(filtered, criteria, index + 1)
+    debug "filtered #{filtered.count}, filtering again"
+    filter(filtered, desired: desired, index: index + 1)
   end
 end
 
+#o2g = filter(input, desired: 1).first.to_i(2)
+debug!
+co2 = filter(input, desired: 0).first.to_i(2)
 
-o2g = filter(INPUT, o2_criteria).first
-co2 = filter(INPUT, co2_criteria).first
+#puts "o2g => #{o2g}"
+puts "co2 => #{co2}"
 
-puts o2g.to_i(2) * co2.to_i(2)
+#puts o2g * co2
 
-# require "pry"; binding.pry
