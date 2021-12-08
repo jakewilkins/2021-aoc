@@ -2,6 +2,19 @@
 
 require_relative "../toolkit"
 
+module Line
+  def draw(point_one, point_two)
+  end
+end
+
+class Point
+  attr_reader :coordinates
+
+  def initialize(*coordinates)
+    @coordinates = coordinates
+  end
+end
+
 class PartOne < Puzzle
   state :points, []
   state :doubles, []
