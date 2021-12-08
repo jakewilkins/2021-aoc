@@ -1,15 +1,21 @@
 
 def debug!
-  $debug = true
+  $debug ||= 0
+  $debug += 1
 end
 
 def nebug!
-  $debug = false
+  $debug ||= 0
+  $debug -= 1
 end
 
-def debug(str)
-  if $debug
-    $stderr.puts str
+def debug(str, level: 1, output: true)
+  if $debug >= level
+    if output
+      $stderr.puts str
+    else
+      str
+    end
   end
 end
 
@@ -41,5 +47,23 @@ def input
     EXAMPLE_INPUT
   else
     INPUT
+  end
+end
+
+def prys_enabled=(arg)
+  $prys_enabed = arg
+end
+
+def prys_enabled
+  $prys_enabled
+end
+
+def pry_enabled?(name)
+  $prys_enabled.include?(name)
+end
+
+def pry(named, bind = nil)
+  if pry_enabled?(name)
+    (bind || binding).pry
   end
 end
