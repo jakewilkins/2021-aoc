@@ -10,6 +10,7 @@ def nebug!
 end
 
 def debug(str, level: 1, output: true)
+  $debug ||= 0
   if $debug >= level
     if output
       $stderr.puts str
