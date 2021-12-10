@@ -5,7 +5,7 @@ Bundler.setup
 require "tty-progressbar"
 require "colorize"
 require "diffy"
-require "parser/current"
+# require "parser/current"
 
 PRYS_ENABLED = []
 
@@ -91,6 +91,7 @@ module Helpers
 end
 
 extend Helpers
+include Helpers
 
 class Puzzle
   include Helpers
@@ -101,7 +102,7 @@ class Puzzle
   end
 
   def self.state(name, default)
-    attr_reader name
+    attr_accessor name
     state_defaults[name] = default
   end
 
