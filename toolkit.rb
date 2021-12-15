@@ -2,6 +2,9 @@
 
 require "bundler"
 Bundler.setup
+
+require "optparse"
+
 require "tty-progressbar"
 require "colorize"
 require "diffy"
@@ -96,6 +99,22 @@ include Helpers
 class Puzzle
   include Helpers
 
+  def self.puzzled?
+    @puzzled
+  end
+
+  def self.puzzled!
+    @puzzled = true
+  end
+
+  def self.children
+    @children ||= []
+  end
+
+  def self.puzzle_class
+    Puzzle.children.last
+  end
+
   def self.state_defaults(state = nil)
     return @state if defined?(@state)
     @state = {}
@@ -110,6 +129,10 @@ class Puzzle
     new.call
   end
 
+  def self.inherited(other)
+    children << other
+  end
+
   def initialize(**args)
     self.class.state_defaults.each do |key, default|
       instance_variable_set(:"@#{key}", args[key] || default.clone)
@@ -117,6 +140,7 @@ class Puzzle
   end
 
   def call
+    self.class.puzzled!
     parse_inputs
     calculate
     post_process
@@ -134,3 +158,44 @@ class Puzzle
     puts "done"
   end
 end
+
+module ARGS
+  PARSER = -> () { OptionParser.new do |opts|
+    opts.banner = "Usage: coverage [options]"
+
+    opts.on("-pPRY", "--pry=PRY", "The pry sessions to enable") do |s|
+      ::PRYS_ENABLED.concat(s.split(',').map(&:intern))
+    end
+
+    opts.on("-d", "--debug", "Increase the debug level") do
+      debug!
+    end
+
+    opts.on("-e", "--[no-]example", "Use the example input for this run") do |v|
+      if v
+        ENV['EXAMPLE'] = '1'
+      end
+    end
+
+    opts.on("-h", "--help", "Prints this help") do
+      puts opts
+      exit
+    end
+  end }
+
+  PARSER_HELP = PARSER.call.to_s
+
+  def self.parse!
+    puts "Parsing args #{ARGV}"
+    PARSER.call().parse!(ARGV)
+  end
+end
+ARGS.parse!
+
+
+at_exit {
+  unless Puzzle.puzzled?
+    puts "Running #{Puzzle.puzzle_class}"
+    Puzzle.puzzle_class.call
+  end
+}
