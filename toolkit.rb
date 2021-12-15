@@ -23,13 +23,14 @@ module Helpers
     $debug -= 1
   end
 
-  def debug(str, level: 1, output: true)
+  def debug(str = nil, level: 1, output: true, &block)
     $debug ||= 0
     if $debug >= level
+      value = str || block.call
       if output
-        $stderr.puts str
+        $stderr.puts value
       else
-        str
+        value
       end
     end
   end
@@ -116,8 +117,13 @@ class Puzzle
   end
 
   def self.state_defaults(state = nil)
-    return @state if defined?(@state)
-    @state = {}
+    return @state if defined?(@state) && !state
+
+    @state = if state
+      (@state || {}).merge(state)
+    else
+      {}
+    end
   end
 
   def self.state(name, default)
@@ -131,6 +137,11 @@ class Puzzle
 
   def self.inherited(other)
     children << other
+
+    def other.inherited(so)
+      so.state_defaults(state_defaults)
+      Puzzle.children << so
+    end
   end
 
   def initialize(**args)
@@ -142,6 +153,7 @@ class Puzzle
   def call
     self.class.puzzled!
     parse_inputs
+    debug(level: 3) { "starting state: #{state}" }
     calculate
     post_process
   end
@@ -156,6 +168,20 @@ class Puzzle
 
   def post_process
     puts "done"
+  end
+
+  def state
+    self.class.state_defaults.keys.each_with_object({}) do |attr, out|
+      out[attr] = self.send(attr)
+    end
+  end
+
+  def to_s
+    attrs = state.each_with_object([]) do |(k, v), out|
+      out << "#{k}=#{v}"
+    end
+
+    "<#{self.class.name}: #{attrs.join(", ")}"
   end
 end
 
@@ -186,8 +212,9 @@ module ARGS
   PARSER_HELP = PARSER.call.to_s
 
   def self.parse!
-    puts "Parsing args #{ARGV}"
+    args = ARGV.dup
     PARSER.call().parse!(ARGV)
+    debug(level: 2) { "Parsed args #{args}" }
   end
 end
 ARGS.parse!
@@ -195,7 +222,7 @@ ARGS.parse!
 
 at_exit {
   unless Puzzle.puzzled?
-    puts "Running #{Puzzle.puzzle_class}"
+    debug "Running #{Puzzle.puzzle_class}"
     Puzzle.puzzle_class.call
   end
 }
