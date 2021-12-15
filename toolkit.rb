@@ -156,6 +156,10 @@ class Puzzle
     debug(level: 3) { "starting state: #{state}" }
     calculate
     post_process
+
+    if example_run? && defined?(EXAMPLE_RESULT)
+      puts "Expected value #{EXAMPLE_RESULT}"
+    end
   end
 
   def parse_inputs
