@@ -27,14 +27,10 @@ class PartOne < Puzzle
     displays.each do |display|
       known_digits = recognize_known_digits(display.all_possibilities)
       display.original_value = display.scrambled_values
-      replace_known_values(known_digits, display)
 
-      if display.scrambled_values.all?(Integer)
-        display.value = display.scrambled_values.join.to_i
-        next
+      display.scrambled_values = display.scrambled_values.map do |value|
+        resolve_number(value.chars, known_digits)
       end
-
-      replace_unkown_values(known_digits, display)
 
       display.value = display.scrambled_values.join.to_i
       pryd(:e, binding)
@@ -47,36 +43,24 @@ class PartOne < Puzzle
     puts "The sum of all displays is #{calculated_value}"
   end
 
-  # def resolve_number
+  def resolve_number(value, known_digits)
+    val = known_digits.key(value)
+    return val if val
 
-  def replace_known_values(known_digits, display)
-    debug(level: 2) { display.scrambled_values.to_s }
-    display.scrambled_values = display.scrambled_values.map do |value|
-      found_value = known_digits.key(value) || value
-      debug(level: 3) { "value = #{value}, known_values = #{known_digits}, found_value = #{found_value}" }
-      found_value
-    end
-    debug(level: 2) { display.scrambled_values.to_s }
-  end
-
-  def replace_unkown_values(known_values, display)
-    known_values = known_values.map {|k, v| [k, v.chars]}.to_h
-    display.scrambled_values = display.scrambled_values.map do |value|
-      next value unless value.is_a?(String)
-      find_numeric(known_values, value)
-    end
+    find_numeric(known_digits, value)
   end
 
   # Looks for:
   #   0, 2, 3, 5, 6, 9
   def find_numeric(known_values, value)
     possibilities = value.length == 6 ? [0, 6, 9] : [2, 3, 5]
-    possibilities.find {|number| send(:"is_#{number}?", value.chars, known_values)}
+    possibilities.find {|number| send(:"is_#{number}?", value, known_values)}
   end
 
   def is_0?(value, known_values)
     pryd(:z, binding)
-    (value & known_values[4]).empty?
+    return false if is_6?(value, known_values)
+    (value - known_values[4]).length == 3
   end
 
   def is_2?(value, known_values)
@@ -95,7 +79,6 @@ class PartOne < Puzzle
   end
 
   def is_6?(value, known_values)
-    return false if is_0?(value, known_values)
     (value & known_values[7]).length == 2
   end
 
@@ -106,7 +89,15 @@ class PartOne < Puzzle
 
   def recognize_known_digits(displayed)
     DISTINCT_NUMBER_SEGMENTS.each_with_object({}) do |(number, segments), out|
-      out[number] = displayed.find {|d| d.length == segments}.chars.sort.join
+      out[number] = displayed.find {|d| d.length == segments}.chars.sort
     end
+  end
+
+  def debug_display(display, known_values)
+    display.all_possibilities.each_with_object({}) do |poss, out|
+      mapped = resolve_number(poss.chars.sort, known_values)
+      puts "poss: #{poss} - #{mapped}"
+      out[mapped] = poss
+    end.sort_by {|(k, v)| v }.to_h
   end
 end
