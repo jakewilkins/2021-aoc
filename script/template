@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+
+day = ARGV[0]
+
+unless day
+  $stderr.puts "usage: template <day>"
+  exit 1
+end
+
+trap('INT') { puts "bye!"; exit }
+
+puzzle_template = %|# frozen_string_literal: true
+
+require_relative "../toolkit"
+
+class PuzzleDAY < Puzzle
+  state :state, nil
+
+  def parse_inputs
+    print "Wait..."
+  end
+
+  def calculate
+    puts "let me think!"
+  end
+
+  def post_process
+    puts "nvm"
+  end
+end
+|
+
+
+FileUtils.mkdir_p(day, verbose: true)
+
+puts "Writing puzzle templates..."
+File.write("#{day}/1.rb", puzzle_template.gsub("DAY", "One"))
+File.write("#{day}/2.rb", puzzle_template.gsub("DAY", "Two"))
+puts "done."
+
+puts "Paste in example input:"
+
+example_input = STDIN.gets(nil).chomp
+
+puts "What's the example answer?"
+example_result = STDIN.gets.chomp
+
+puts "Past in the full puzzle input:"
+input = STDIN.gets(nil).chomp
+
+File.write("#{day}/input.rb", %{# frozen_string_literal: true
+
+EXAMPLE_INPUT = %|#{example_input}|.split("\\n")
+EXAMPLE_RESULT = '#{example_result}'
+
+INPUT = %|#{input}|.split("\\n")
+})
+
