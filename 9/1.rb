@@ -43,15 +43,36 @@ class PuzzleOne < Puzzle
     sum = point_values.sum
     debug "#{point_values.join(" + ")} = #{sum}"
     debug { puts debug_display.map {|r| r.join}.flatten.join("\n") }
-    # puts "The answer is #{ans}"
+    puts "The answer is #{sum}"
   end
 
   def neighbors(row, column)
-    [
-      rows[row][column - 1],
-      rows[row][column + 1],
-      columns[column][row - 1],
-      columns[column][row + 1]
-    ].compact
+    debug "fetching neighbors for #{row}, #{column}"
+    neighbors = []
+    if column > 0
+      neighbors << rows[row][column - 1]
+      debug "Column > 0, adding lower neighbor <#{neighbors}", level: 4
+    end
+    if (column + 1)  < column_count
+      neighbors << rows[row][column + 1]
+      debug "Column < #{column_count}, adding lower neighbor <#{neighbors}", level: 4
+    end
+    if row > 0
+      neighbors << columns[column][row - 1]
+      debug "Column > 0, adding lower neighbor <#{neighbors}", level: 4
+    end
+
+    if (row + 1) < row_count
+      neighbors << columns[column][row + 1]
+      debug "Column < #{row_count}, adding lower neighbor column: #{columns[column]}, row: #{row}#{neighbors}", level: 4
+    end
+
+    if neighbors.include?(nil)
+      debug "row: #{row}, column: #{column}, row: #{row - 1}, row_count: #{row_count}", level: 3
+      debug columns[column].inspect, level: 3
+    end
+    pryd(:n, binding)
+    debug neighbors.inspect, level: 2
+    neighbors
   end
 end
